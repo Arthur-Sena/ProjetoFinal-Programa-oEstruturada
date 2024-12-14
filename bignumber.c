@@ -16,7 +16,6 @@
 #include <stdio.h>
 #include <string.h>
 
-// Função para criar um BigNumber a partir de uma string
 BigNumber* create_bignumber(const char* numberInString) {
     if (!numberInString) return NULL;
 
@@ -28,20 +27,20 @@ BigNumber* create_bignumber(const char* numberInString) {
 
     int startLoopingIn = (ptrBignumber->is_negative ? 1 : 0); //Se for negativo elimina primeira casa (sinal negativo)
     for (int i = startLoopingIn; numberInString[i] != '\0'; i++) {
-        Node* new_node = (Node*)malloc(sizeof(Node));
-        if (!new_node) {
+        Node* newNode = (Node*)malloc(sizeof(Node));
+        if (!newNode) {
             free_bignumber(ptrBignumber);
             return NULL;
         }
-        new_node->digit = numberInString[i];
-        new_node->nextNode = NULL;
-        new_node->previousNode = ptrBignumber->lastNode;
+        newNode->digit = numberInString[i];
+        newNode->nextNode = NULL;
+        newNode->previousNode = ptrBignumber->lastNode;
 
         if (ptrBignumber->lastNode)
-            ptrBignumber->lastNode->nextNode = new_node;
+            ptrBignumber->lastNode->nextNode = newNode;
         else 
-            ptrBignumber->firstNode = new_node;
-        ptrBignumber->lastNode = new_node;
+            ptrBignumber->firstNode = newNode;
+        ptrBignumber->lastNode = newNode;
     }
 
     return ptrBignumber;
@@ -59,28 +58,29 @@ void free_bignumber(BigNumber* ptrBignumber) {
     free(ptrBignumber);
 }
 
-// Função para somar dois BigNumbers
-BigNumber* add_bignumbers(const BigNumber* a, const BigNumber* b) {
-    if (!a || !b) return NULL;
-
+BigNumber* add_bignumbers(const Node* lastNodeFirstNumber, const Node* lastNodeSecondNumber) {
     BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
     if (!result) return NULL;
-
     result->firstNode = NULL;
     result->lastNode = NULL;
     result->is_negative = 0;
 
-    Node* node_a = a->lastNode;
-    Node* node_b = b->lastNode;
     int carry = 0;
 
-    while (node_a || node_b || carry) {
-        int digit_a = node_a ? node_a->digit - '0' : 0;
-        int digit_b = node_b ? node_b->digit - '0' : 0;
+    while (lastNodeFirstNumber || lastNodeSecondNumber || carry) {
+        int digit_a = lastNodeFirstNumber ? lastNodeFirstNumber->digit - '0' : 0;
+        int digit_b = lastNodeSecondNumber ? lastNodeSecondNumber->digit - '0' : 0;
         int sum = digit_a + digit_b + carry;
 
-        carry = sum / 10;
-        int digit_result = sum % 10;
+        int digit_result = 0;
+        if (sum >= 10) {
+            digit_result += sum % 10;
+            carry = 1;
+        }
+        else {
+            digit_result += sum;
+            carry = 0;
+        }
 
         Node* new_node = (Node*)malloc(sizeof(Node));
         if (!new_node) {
@@ -98,14 +98,13 @@ BigNumber* add_bignumbers(const BigNumber* a, const BigNumber* b) {
             result->lastNode = new_node;
         result->firstNode = new_node;
 
-        if (node_a) node_a = node_a->previousNode;
-        if (node_b) node_b = node_b->previousNode;
+        if (lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
+        if (lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
     }
 
     return result;
 }
 
-// Função para imprimir um BigNumber
 void print_bignumber(const BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 

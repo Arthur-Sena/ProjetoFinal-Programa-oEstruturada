@@ -35,10 +35,11 @@ int main() {
 
 
     //if (operador == '+')
-    result = add_bignumbers(num1, num2);
+    result = add_bignumbers(num1->lastNode, num2->lastNode);
     //else if (operador == '-')
-
     print_bignumber(result);
+
+    scanf(" %c", &operador);
 
     //Liberando memória
     free_bignumber(num1);
