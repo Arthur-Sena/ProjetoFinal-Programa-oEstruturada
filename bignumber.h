@@ -28,7 +28,7 @@ typedef struct {
 
 BigNumber* create_bignumber(const char* number);
 void free_bignumber(BigNumber* ptrBignumber);
-BigNumber* add_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
+BigNumber* add_bignumbers(const Node* firstNumber, const Node* secondNumber);
 BigNumber* subtract_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 BigNumber* multiply_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 BigNumber* divide_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
