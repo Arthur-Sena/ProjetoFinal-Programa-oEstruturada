@@ -1,11 +1,47 @@
-/*
-[FEITO] IMPORTANTE - Declarei o input1 e input2 com tamanho maximo de caractere (10005), acho que não pode ter limite, 
-    tem que usar alocação dinaminca de memória, não sei fazer isso
-*/
-
 #include "bignumber.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
+#pragma region "Função auxiliar"
+bool first_bignum_is_bigger(const BigNumber* firstBignum, const BigNumber* secondBignum) {
+    int lengthFirstBignum = 0, lengthSecondBignum = 0;
+    Node* currentNodeFirstBignum = firstBignum->firstNode;
+    Node* currentNodeSecondBignum = secondBignum->firstNode;
+
+    while (currentNodeFirstBignum) {
+        lengthFirstBignum++;
+        currentNodeFirstBignum = currentNodeFirstBignum->nextNode;
+    }
+    while (currentNodeSecondBignum) {
+        lengthSecondBignum++;
+        currentNodeSecondBignum = currentNodeSecondBignum->nextNode;
+    }
+
+    bool firstBignumIsBigger = false;
+    if (lengthFirstBignum == lengthSecondBignum){
+        firstBignumIsBigger = (firstBignum->firstNode->digit - '0') > (secondBignum->firstNode->digit - '0');
+    }
+    else 
+        firstBignumIsBigger = (lengthFirstBignum > lengthSecondBignum);
+    return firstBignumIsBigger; 
+}
+
+BigNumber* verify_sum_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
+    if (firstBignumber->is_negative == secondBignumber->is_negative) 
+        return add_bignumbers(firstBignumber, secondBignumber);
+    else {
+        bool firstBignumIsBigger = first_bignum_is_bigger(firstBignumber, secondBignumber);
+        BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
+        if (firstBignumIsBigger)
+            result = subtract_bignumbers(firstBignumber, secondBignumber);        
+        else
+            result = subtract_bignumbers(secondBignumber, firstBignumber);
+        return result;
+    }
+}
+#pragma endregion
 
 int main() {
     char *firstInput = NULL, *secondInput = NULL, operador;
@@ -18,7 +54,6 @@ int main() {
     printf("\nOperação (+, -, *, /): ");
     scanf(" %c", &operador);
 
-    // Remover o '\n' no final das strings lidas
     firstInput[strcspn(firstInput, "\n")] = '\0';
     secondInput[strcspn(secondInput, "\n")] = '\0';
 
@@ -33,10 +68,11 @@ int main() {
         return 1;
     }
 
-
-    //if (operador == '+')
-    result = add_bignumbers(num1->lastNode, num2->lastNode);
+    if (operador == '+')
+        result = verify_sum_bignumbers(num1, num2);
+    
     //else if (operador == '-')
+    
     print_bignumber(result);
 
     scanf(" %c", &operador);
