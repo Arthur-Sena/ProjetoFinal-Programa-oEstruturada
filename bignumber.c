@@ -1,16 +1,3 @@
-/* A fazer e melhorias
-1 - [FEITO +/-, Dando erro com num mt grande e num negativo] Soma 
-2 - Subtração
-3 - Multiplicação
-4 - Divisao
-5 - Melhorias
-6 - Precisa rodar naquele bglh la que o professor usa na aula pra ver se tem 
-    alguma coisa vazando na memória (não sei fazer isso no windows :´(  
-    valgrind --leak-check=yes
-
-7 - Testar tudo com aquelas entradas do .In q o prof liberou
-8 - Fazer extras 
-*/
 #include "bignumber.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,6 +33,14 @@ BigNumber* create_bignumber(const char* numberInString) {
     return ptrBignumber;
 }
 
+Node* create_node(int digitReceived) {
+    Node *newNode = (Node*)malloc(sizeof(Node));
+    newNode->digit = digitReceived;
+    newNode->previousNode = NULL;
+    newNode->nextNode = NULL;
+    return newNode;
+}
+
 void free_bignumber(BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 
@@ -58,46 +53,80 @@ void free_bignumber(BigNumber* ptrBignumber) {
     free(ptrBignumber);
 }
 
-BigNumber* add_bignumbers(const Node* lastNodeFirstNumber, const Node* lastNodeSecondNumber) {
+BigNumber* add_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
     BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
     if (!result) return NULL;
     result->firstNode = NULL;
     result->lastNode = NULL;
-    result->is_negative = 0;
+    result->is_negative = firstBignumber->is_negative;
 
-    int carry = 0;
+    Node* lastNodeFirstNumber = firstBignumber->lastNode;
+    Node* lastNodeSecondNumber = secondBignumber->lastNode;
+    int borrow = 0;
 
-    while (lastNodeFirstNumber || lastNodeSecondNumber || carry) {
-        int digit_a = lastNodeFirstNumber ? lastNodeFirstNumber->digit - '0' : 0;
-        int digit_b = lastNodeSecondNumber ? lastNodeSecondNumber->digit - '0' : 0;
-        int sum = digit_a + digit_b + carry;
+    while (lastNodeFirstNumber || lastNodeSecondNumber || borrow) {
+        int digit1 = lastNodeFirstNumber ? lastNodeFirstNumber->digit - '0' : 0;
+        int digit2 = lastNodeSecondNumber ? lastNodeSecondNumber->digit - '0' : 0;
+        int sum = digit1 + digit2 + borrow;
 
-        int digit_result = 0;
+        int digitResult = 0;
         if (sum >= 10) {
-            digit_result += sum % 10;
-            carry = 1;
+            digitResult += sum % 10;
+            borrow = 1;
         }
         else {
-            digit_result += sum;
-            carry = 0;
+            digitResult += sum;
+            borrow = 0;
         }
 
-        Node* new_node = (Node*)malloc(sizeof(Node));
-        if (!new_node) {
-            free_bignumber(result);
-            return NULL;
-        }
-
-        new_node->digit = digit_result + '0';
-        new_node->nextNode = result->firstNode;
-        new_node->previousNode = NULL;
+        Node* newNode = create_node(digitResult + '0');
+        newNode->nextNode = result->firstNode;
+        newNode->previousNode = NULL;
 
         if (result->firstNode)
-            result->firstNode->previousNode = new_node;
+            result->firstNode->previousNode = newNode;
         else
-            result->lastNode = new_node;
-        result->firstNode = new_node;
+            result->lastNode = newNode;
+        result->firstNode = newNode;
 
+        if (lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
+        if (lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
+    }
+
+    return result;
+}
+
+BigNumber* subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
+    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
+    if (!result) return NULL;
+    result->firstNode = NULL;
+    result->lastNode = NULL;
+    result->is_negative = firstBignumber->is_negative;
+
+    Node *lastNodeFirstNumber = firstBignumber->lastNode;
+    Node *lastNodeSecondNumber = secondBignumber->lastNode;
+    int borrow = 0;
+
+    while (lastNodeFirstNumber || lastNodeSecondNumber || borrow) {
+        int digit1 = lastNodeFirstNumber ? lastNodeFirstNumber->digit - '0' : 0;
+        int digit2 = lastNodeSecondNumber ? lastNodeSecondNumber->digit - '0' : 0;
+        int subtract = digit1 - digit2 - borrow;
+
+        if (subtract < 0) {
+            subtract += 10;
+            borrow = 1;
+        } else
+            borrow = 0;
+        
+        Node *newNode = create_node(subtract + '0');
+        newNode->nextNode = result->firstNode;
+        newNode->previousNode = NULL;
+        if (result->firstNode)
+            result->firstNode->previousNode = newNode;
+        else
+            result->lastNode = newNode;
+        result->firstNode = newNode;     
+       
         if (lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
         if (lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
     }
