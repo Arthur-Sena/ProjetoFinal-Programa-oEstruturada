@@ -134,6 +134,44 @@ BigNumber* subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
+BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
+    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
+    if (!result) return NULL;
+    result->firstNode = NULL;
+    result->lastNode = NULL;
+    result->is_negative = firstBignumber->is_negative;
+
+    Node *lastNodeFirstNumber = firstBignumber->lastNode;
+    Node *lastNodeSecondNumber = secondBignumber->lastNode;
+    int borrow = 0;
+
+    while (lastNodeFirstNumber || lastNodeSecondNumber || borrow) {
+        int digit1 = lastNodeFirstNumber ? lastNodeFirstNumber->digit - '0' : 0;
+        int digit2 = lastNodeSecondNumber ? lastNodeSecondNumber->digit - '0' : 0;
+        int subtract = digit1 - digit2 - borrow;
+
+        if (subtract < 0) {
+            subtract += 10;
+            borrow = 1;
+        } else
+            borrow = 0;
+        
+        Node *newNode = create_node(subtract + '0');
+        newNode->nextNode = result->firstNode;
+        newNode->previousNode = NULL;
+        if (result->firstNode)
+            result->firstNode->previousNode = newNode;
+        else
+            result->lastNode = newNode;
+        result->firstNode = newNode;     
+       
+        if (lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
+        if (lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
+    }
+
+    return result;
+}
+
 void print_bignumber(const BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 
