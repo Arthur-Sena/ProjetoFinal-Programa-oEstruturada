@@ -139,34 +139,66 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     if (!result) return NULL;
     result->firstNode = NULL;
     result->lastNode = NULL;
-    result->is_negative = firstBignumber->is_negative;
+    result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
 
     Node *lastNodeFirstNumber = firstBignumber->lastNode;
     Node *lastNodeSecondNumber = secondBignumber->lastNode;
     int borrow = 0;
+    //Esse número indica a posição do número do dividendo que o divisor indicado está dividindo
+    int starterFirstNum = 0;
+    //Esse número indica a posição do número divisor que está dividindo
+    int starterSecondNum = 0;
+
+    /*  8 -> multiplicando
+        x
+        2 -> multiplicador
+    --------
+        16 -> produto
+    */
+
+   /* Lógica MULTIPLICAÇÃO:
+    O loop irá percorrer o second (multiplicador), que controlará o inicio do somatório.
+    O somatório é a soma do numero do multiplicador indicado vezes o numero do multiplicando indicado mais o próximo número
+    do multiplicador indicado vezes o número antecessor ao multiplicando indicado.
+    Se o número antecessor ao multiplicando indicado não existir, no caso de ser o 0 e o antecessor o -1, então essa
+    multiplicação e suas seguintes não entram no somatório.
+    Ex: 1012 * 141 = 142692
+
+    Passo 1: 
+      2 * 1 = 2
+      Resultado: 2
+   
+   Passo 2:
+      1 * 1 = 1
+      4 * 2 = 8
+      Soma: 1 + 8 = 9
+      Resultado: 9
+
+   Passo 3:
+      1 * 0 = 0
+      4 * 1 = 4
+      1 * 2 = 2
+      Soma: 0 + 4 + 2 = 6
+      Resultado: 6
+
+    OBS: observe que os valores de cada passo batem com os valores de trás para frente do resultado da multiplicação.
+     */
+
+   /*   8 -> dividendo
+        /
+        2 -> divisor
+    --------
+        4 -> quociente (e pode ter resto)
+    */
+
+    /* Lógica DIVISÃO:
+        EM Aálise
+     */
 
     while (lastNodeFirstNumber || lastNodeSecondNumber || borrow) {
         int digit1 = lastNodeFirstNumber ? lastNodeFirstNumber->digit - '0' : 0;
         int digit2 = lastNodeSecondNumber ? lastNodeSecondNumber->digit - '0' : 0;
         int subtract = digit1 - digit2 - borrow;
-
-        if (subtract < 0) {
-            subtract += 10;
-            borrow = 1;
-        } else
-            borrow = 0;
-        
-        Node *newNode = create_node(subtract + '0');
-        newNode->nextNode = result->firstNode;
-        newNode->previousNode = NULL;
-        if (result->firstNode)
-            result->firstNode->previousNode = newNode;
-        else
-            result->lastNode = newNode;
-        result->firstNode = newNode;     
-       
-        if (lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
-        if (lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
     }
 
     return result;
