@@ -41,6 +41,13 @@ Node* create_node(int digitReceived) {
     return newNode;
 }
 
+Node* get_bignumber_node_by_index(int index, BigNumber* bignumber) {
+    Node* lastNode = bignumber->lastNode;
+    for (int i = 0; i < index; i++)
+        lastNode = lastNode->previousNode;
+    return lastNode;
+}
+
 void free_bignumber(BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 
@@ -144,9 +151,9 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     Node *lastNodeFirstNumber = firstBignumber->lastNode;
     Node *lastNodeSecondNumber = secondBignumber->lastNode;
     int borrow = 0;
-    //Esse número indica a posição do número do dividendo que o divisor indicado está dividindo
+    //Esse número indica a posição do número do multiplicando que o multiplicador indicado está multiplicando - mandante - contador para trás
     int starterFirstNum = 0;
-    //Esse número indica a posição do número divisor que está dividindo
+    //Esse número indica a posição do número multiplicador que está multiplicando
     int starterSecondNum = 0;
 
     /*  8 -> multiplicando
@@ -184,7 +191,40 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     OBS: observe que os valores de cada passo batem com os valores de trás para frente do resultado da multiplicação.
      */
 
-   /*   8 -> dividendo
+    /* Toda somatório haverá a incrementação do starterFirstNum, a nao ser que o lastNodeSecondNumber
+     tenha finalizado a linha, ai não incrementa nessa etapa */
+
+
+    while (lastNodeSecondNumber) {
+
+        while (lastNodeFirstNumber) {
+            printf("S:\n");
+            printf(" %c | %c \n", lastNodeFirstNumber->digit, lastNodeSecondNumber->digit);
+                
+            Node *copylastNodeSecondNumber = lastNodeSecondNumber;
+            Node *copylastNodeFirstNumber = lastNodeFirstNumber;
+            while (lastNodeSecondNumber) {
+                printf("%c x %c \n", lastNodeFirstNumber->nextNode->digit, lastNodeSecondNumber->previousNode->digit);
+                if(lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
+                if(lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->nextNode;
+            }
+            lastNodeSecondNumber = copylastNodeSecondNumber;
+            lastNodeFirstNumber = copylastNodeFirstNumber;
+
+            if(lastNodeFirstNumber->previousNode) starterFirstNum++;
+            if(lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
+        }
+
+        if(lastNodeSecondNumber->previousNode) starterSecondNum++;
+        if(lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
+    }
+
+    return result;
+}
+
+BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
+
+/*   8 -> dividendo
         /
         2 -> divisor
     --------
@@ -194,14 +234,6 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     /* Lógica DIVISÃO:
         EM Aálise
      */
-
-    while (lastNodeFirstNumber || lastNodeSecondNumber || borrow) {
-        int digit1 = lastNodeFirstNumber ? lastNodeFirstNumber->digit - '0' : 0;
-        int digit2 = lastNodeSecondNumber ? lastNodeSecondNumber->digit - '0' : 0;
-        int subtract = digit1 - digit2 - borrow;
-    }
-
-    return result;
 }
 
 void print_bignumber(const BigNumber* ptrBignumber) {
