@@ -134,6 +134,95 @@ BigNumber* subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
+BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
+    if (!firstBignumber || !secondBignumber) return NULL;
+
+    BigNumber* result = create_bignumber("0");
+    if (!result) return NULL;
+
+    Node* secondNode = secondBignumber->lastNode;
+    int positionOffset = 0;
+
+    while (secondNode) {
+        int secondDigit = secondNode->digit - '0';
+        int carry = 0;
+
+        BigNumber* partialResult = (BigNumber*)malloc(sizeof(BigNumber));
+        if (!partialResult) {
+            free_bignumber(result);
+            return NULL;
+        }
+        partialResult->firstNode = NULL;
+        partialResult->lastNode = NULL;
+        partialResult->is_negative = false;
+
+        for (int i = 0; i < positionOffset; i++) {
+            Node* zeroNode = create_node('0');
+            zeroNode->nextNode = partialResult->firstNode;
+            if (partialResult->firstNode)
+                partialResult->firstNode->previousNode = zeroNode;
+            else
+                partialResult->lastNode = zeroNode;
+            partialResult->firstNode = zeroNode;
+        }
+
+        Node* firstNode = firstBignumber->lastNode;
+        while (firstNode) {
+            int firstDigit = firstNode->digit - '0';
+            int product = firstDigit * secondDigit + carry;
+
+            carry = product / 10;
+            int digitResult = product % 10;
+
+            Node* newNode = create_node(digitResult + '0');
+            newNode->nextNode = partialResult->firstNode;
+            if (partialResult->firstNode)
+                partialResult->firstNode->previousNode = newNode;
+            else
+                partialResult->lastNode = newNode;
+            partialResult->firstNode = newNode;
+
+            firstNode = firstNode->previousNode;
+        }
+
+        if (carry > 0) {
+            Node* carryNode = create_node(carry + '0');
+            carryNode->nextNode = partialResult->firstNode;
+            if (partialResult->firstNode)
+                partialResult->firstNode->previousNode = carryNode;
+            else
+                partialResult->lastNode = carryNode;
+            partialResult->firstNode = carryNode;
+        }
+
+        BigNumber* newResult = add_bignumbers(result, partialResult);
+        free_bignumber(result);
+        free_bignumber(partialResult);
+        result = newResult;
+
+        secondNode = secondNode->previousNode;
+        positionOffset++;
+    }
+
+    result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
+    return result;
+}
+
+
+BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
+
+/*   8 -> dividendo
+        /
+        2 -> divisor
+    --------
+        4 -> quociente (e pode ter resto)
+    */
+
+    /* Lógica DIVISÃO:
+        EM Aálise
+     */
+}
+
 void print_bignumber(const BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 
