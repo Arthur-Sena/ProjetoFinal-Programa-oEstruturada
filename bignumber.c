@@ -141,86 +141,80 @@ BigNumber* subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
-BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
-    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
+BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
+    if (!firstBignumber || !secondBignumber) return NULL;
+
+    BigNumber* result = create_bignumber("0");
     if (!result) return NULL;
-    result->firstNode = NULL;
-    result->lastNode = NULL;
-    result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
 
-    Node *lastNodeFirstNumber = firstBignumber->lastNode;
-    Node *lastNodeSecondNumber = secondBignumber->lastNode;
-    int borrow = 0;
-    //Esse número indica a posição do número do multiplicando que o multiplicador indicado está multiplicando - mandante - contador para trás
-    int starterFirstNum = 0;
-    //Esse número indica a posição do número multiplicador que está multiplicando
-    int starterSecondNum = 0;
+    Node* secondNode = secondBignumber->lastNode;
+    int positionOffset = 0;
 
-    /*  8 -> multiplicando
-        x
-        2 -> multiplicador
-    --------
-        16 -> produto
-    */
+    while (secondNode) {
+        int secondDigit = secondNode->digit - '0';
+        int carry = 0;
 
-   /* Lógica MULTIPLICAÇÃO:
-    O loop irá percorrer o second (multiplicador), que controlará o inicio do somatório.
-    O somatório é a soma do numero do multiplicador indicado vezes o numero do multiplicando indicado mais o próximo número
-    do multiplicador indicado vezes o número antecessor ao multiplicando indicado.
-    Se o número antecessor ao multiplicando indicado não existir, no caso de ser o 0 e o antecessor o -1, então essa
-    multiplicação e suas seguintes não entram no somatório.
-    Ex: 1012 * 141 = 142692
+        BigNumber* partialResult = (BigNumber*)malloc(sizeof(BigNumber));
+        if (!partialResult) {
+            free_bignumber(result);
+            return NULL;
+        }
+        partialResult->firstNode = NULL;
+        partialResult->lastNode = NULL;
+        partialResult->is_negative = false;
 
-    Passo 1: 
-      2 * 1 = 2
-      Resultado: 2
-   
-   Passo 2:
-      1 * 1 = 1
-      4 * 2 = 8
-      Soma: 1 + 8 = 9
-      Resultado: 9
-
-   Passo 3:
-      1 * 0 = 0
-      4 * 1 = 4
-      1 * 2 = 2
-      Soma: 0 + 4 + 2 = 6
-      Resultado: 6
-
-    OBS: observe que os valores de cada passo batem com os valores de trás para frente do resultado da multiplicação.
-     */
-
-    /* Toda somatório haverá a incrementação do starterFirstNum, a nao ser que o lastNodeSecondNumber
-     tenha finalizado a linha, ai não incrementa nessa etapa */
-
-
-    while (lastNodeSecondNumber) {
-
-        while (lastNodeFirstNumber) {
-            printf("S:\n");
-            printf(" %c | %c \n", lastNodeFirstNumber->digit, lastNodeSecondNumber->digit);
-                
-            Node *copylastNodeSecondNumber = lastNodeSecondNumber;
-            Node *copylastNodeFirstNumber = lastNodeFirstNumber;
-            while (lastNodeSecondNumber) {
-                printf("%c x %c \n", lastNodeFirstNumber->nextNode->digit, lastNodeSecondNumber->previousNode->digit);
-                if(lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
-                if(lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->nextNode;
-            }
-            lastNodeSecondNumber = copylastNodeSecondNumber;
-            lastNodeFirstNumber = copylastNodeFirstNumber;
-
-            if(lastNodeFirstNumber->previousNode) starterFirstNum++;
-            if(lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
+        for (int i = 0; i < positionOffset; i++) {
+            Node* zeroNode = create_node('0');
+            zeroNode->nextNode = partialResult->firstNode;
+            if (partialResult->firstNode)
+                partialResult->firstNode->previousNode = zeroNode;
+            else
+                partialResult->lastNode = zeroNode;
+            partialResult->firstNode = zeroNode;
         }
 
-        if(lastNodeSecondNumber->previousNode) starterSecondNum++;
-        if(lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
+        Node* firstNode = firstBignumber->lastNode;
+        while (firstNode) {
+            int firstDigit = firstNode->digit - '0';
+            int product = firstDigit * secondDigit + carry;
+
+            carry = product / 10;
+            int digitResult = product % 10;
+
+            Node* newNode = create_node(digitResult + '0');
+            newNode->nextNode = partialResult->firstNode;
+            if (partialResult->firstNode)
+                partialResult->firstNode->previousNode = newNode;
+            else
+                partialResult->lastNode = newNode;
+            partialResult->firstNode = newNode;
+
+            firstNode = firstNode->previousNode;
+        }
+
+        if (carry > 0) {
+            Node* carryNode = create_node(carry + '0');
+            carryNode->nextNode = partialResult->firstNode;
+            if (partialResult->firstNode)
+                partialResult->firstNode->previousNode = carryNode;
+            else
+                partialResult->lastNode = carryNode;
+            partialResult->firstNode = carryNode;
+        }
+
+        BigNumber* newResult = add_bignumbers(result, partialResult);
+        free_bignumber(result);
+        free_bignumber(partialResult);
+        result = newResult;
+
+        secondNode = secondNode->previousNode;
+        positionOffset++;
     }
 
+    result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
     return result;
 }
+
 
 BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
 
