@@ -41,13 +41,6 @@ Node* create_node(int digitReceived) {
     return newNode;
 }
 
-Node* get_bignumber_node_by_index(int index, BigNumber* bignumber) {
-    Node* lastNode = bignumber->lastNode;
-    for (int i = 0; i < index; i++)
-        lastNode = lastNode->previousNode;
-    return lastNode;
-}
-
 void free_bignumber(BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 
