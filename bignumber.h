@@ -32,6 +32,7 @@ BigNumber* add_bignumbers(const BigNumber* firstNumber, const BigNumber* secondN
 BigNumber* subtract_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 BigNumber* multiply_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 BigNumber* divide_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
+BigNumber* power_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 void print_bignumber(const BigNumber* ptrBignumber);
 
 #pragma endregion

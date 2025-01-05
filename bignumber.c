@@ -223,6 +223,56 @@ BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* s
      */
 }
 
+long bignumber_to_long(const BigNumber* bignumber) {
+    long result = 0;
+    Node* current = bignumber->firstNode;
+    while (current) {
+        result = result * 10 + (current->digit - '0');
+        current = current->nextNode;
+    }
+    return bignumber->is_negative ? -result : result;
+}
+
+char* long_to_string(long number) {
+    int length = snprintf(NULL, 0, "%ld", number);
+    char* str = (char*)malloc(length + 1);
+    snprintf(str, length + 1, "%ld", number);
+    return str;
+}
+
+BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {    
+    BigNumber* result = create_bignumber("1");
+    BigNumber* baseCopy = base;
+    BigNumber* numberTwo = create_bignumber("2");
+
+    while (!(exponent->firstNode->digit == '0' && exponent->firstNode->nextNode == NULL)) {
+        if ((exponent->lastNode->digit - '0') % 2 != 0) {
+            BigNumber* temp = multiply_bignumbers(result, baseCopy);
+            free_bignumber(result);
+            result = temp;
+        }
+
+        BigNumber* temp = multiply_bignumbers(baseCopy, baseCopy);
+        free_bignumber(baseCopy);
+        baseCopy = temp;        
+        /*
+            QUANDO A FUNÇÂO DE DIVISÃO ESTIVER FEITA, É BOM DESCOMENTAR ESSE CÓDIGO E APAGAR
+            AS FUNÇÕES bignumber_to_long E long_to_string
+            
+            SUBSTITUIR O CÓDIGO "BigNumber* half_exp = create_bignumber(long_to_string((exponentLong / 2)))" 
+            POR ESSE:           BigNumber* half_exp = divide_bignumbers(exponent, numberTwo)
+        */
+        BigNumber* half_exp = create_bignumber(long_to_string( bignumber_to_long(exponent) / 2));
+        free_bignumber(exponent);
+        exponent = half_exp;
+    }
+
+    free_bignumber(baseCopy);
+    free_bignumber(exponent);
+    free_bignumber(numberTwo);
+    return result;
+}
+
 void print_bignumber(const BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 

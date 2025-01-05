@@ -67,17 +67,6 @@ BigNumber* verify_subtract_bignumbers(const BigNumber* firstBignumber, const Big
     return result;
 }
 
-BigNumber* verify_multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
-    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
-    bool firstBignumIsBigger = first_bignum_is_bigger(firstBignumber, secondBignumber);
-    result = multiply_bignumbers(firstBignumber, secondBignumber);
-    if (firstBignumber->is_negative == secondBignumber->is_negative)
-        result->is_negative = false;
-    else
-        result->is_negative = true;
-    return result;
-}
-
 #pragma endregion
 
 int main() {
@@ -110,7 +99,11 @@ int main() {
     else if (operador == '-')
         result = verify_subtract_bignumbers(num1, num2);
     else if (operador == '*')
-        result = verify_multiply_bignumbers(num1, num2);
+        result = multiply_bignumbers(num1, num2);
+    else if (operador == '^')
+        result = power_bignumbers(num1, num2);
+    //else if (operador == '/')
+    //    result = divide_bignumbers(num1, num2);
 
     print_bignumber(result);
 
