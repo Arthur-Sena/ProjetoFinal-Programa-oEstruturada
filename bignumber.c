@@ -221,7 +221,7 @@ BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* s
     /* Lógica DIVISÃO:
         EM Aálise
      */
-if (!firstBignumber || !secondBignumber) return NULL;
+    if (!firstBignumber || !secondBignumber) return NULL;
     if (is_zero(secondBignumber)) return NULL; // Não pode dividir por zero
 
     BigNumber* result = create_bignumber("0");
