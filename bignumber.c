@@ -221,6 +221,52 @@ BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* s
     /* Lógica DIVISÃO:
         EM Aálise
      */
+if (!firstBignumber || !secondBignumber) return NULL;
+    if (is_zero(secondBignumber)) return NULL; // Não pode dividir por zero
+
+    BigNumber* result = create_bignumber("0");
+    if (!result) return NULL;
+
+    BigNumber* currentDividend = create_bignumber("0");
+    if (!currentDividend) {
+        free_bignumber(result);
+        return NULL;
+    }
+
+    Node* dividendNode = firstBignumber->firstNode;
+
+    while (dividendNode) {
+        // Adicionar o próximo dígito ao currentDividend
+        Node* newNode = create_node(dividendNode->digit);
+        append_node(currentDividend, newNode);
+
+        // Remover zeros à esquerda do currentDividend
+        remove_leading_zeros(currentDividend);
+
+        // Calcular quantas vezes o divisor cabe no currentDividend
+        int count = 0;
+        while (compare_bignumbers(currentDividend, divisor) >= 0) {
+            BigNumber* newDividend = subtract_bignumbers(currentDividend, secondBignumber);
+            free_bignumber(currentDividend);
+            currentDividend = newDividend;
+            count++;
+        }
+
+        // Adicionar o count ao resultado
+        Node* resultNode = create_node(count + '0');
+        append_node(result, resultNode);
+
+        dividendNode = dividendNode->nextNode;
+    }
+
+    // Remover zeros à esquerda do resultado
+    remove_leading_zeros(result);
+
+    // Ajustar sinal do resultado
+    result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
+
+    free_bignumber(currentDividend);
+    return result;
 }
 
 long bignumber_to_long(const BigNumber* bignumber) {
