@@ -208,6 +208,56 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
+// Função para adicionar um nó ao final da lista ligada
+void append_node(BigNumber* number, Node* newNode) {
+    if (!number || !newNode) return;
+
+    if (!number->firstNode) {
+        number->firstNode = newNode;
+    } else {
+        Node* current = number->firstNode;
+        while (current->nextNode) {
+            current = current->nextNode;
+        }
+        current->nextNode = newNode;
+    }
+}
+
+// Função para remover zeros à esquerda de um número grande
+void remove_leading_zeros(BigNumber* number) {
+    while (number->firstNode && number->firstNode->digit == '0') {
+        Node* temp = number->firstNode;
+        number->firstNode = number->firstNode->nextNode;
+        free(temp);
+    }
+}
+// Função para comparar dois números grandes (retorna 0 se iguais, 1 se maior, -1 se menor)
+int compare_bignumbers(const BigNumber* first, const BigNumber* second) {
+    if (!first || !second) return 0;
+
+    Node* firstNode = first->firstNode;
+    Node* secondNode = second->firstNode;
+
+    // Verificar se os números têm o mesmo número de dígitos
+    int lenFirst = 0, lenSecond = 0;
+    while (firstNode) { lenFirst++; firstNode = firstNode->nextNode; }
+    while (secondNode) { lenSecond++; secondNode = secondNode->nextNode; }
+
+    if (lenFirst > lenSecond) return 1;
+    if (lenFirst < lenSecond) return -1;
+
+    // Se tiverem o mesmo número de dígitos, comparar digit por digit
+    firstNode = first->firstNode;
+    secondNode = second->firstNode;
+    while (firstNode && secondNode) {
+        if (firstNode->digit > secondNode->digit) return 1;
+        if (firstNode->digit < secondNode->digit) return -1;
+        firstNode = firstNode->nextNode;
+        secondNode = secondNode->nextNode;
+    }
+
+    return 0;
+}
 
 BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
 
@@ -222,7 +272,7 @@ BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* s
         EM Aálise
      */
     if (!firstBignumber || !secondBignumber) return NULL;
-    if (is_zero(secondBignumber)) return NULL; // Não pode dividir por zero
+    if (secondBignumber->firstNode == NULL) return NULL; // Divisor não pode ser zero
 
     BigNumber* result = create_bignumber("0");
     if (!result) return NULL;
