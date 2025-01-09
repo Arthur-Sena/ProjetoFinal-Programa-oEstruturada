@@ -134,6 +134,9 @@ BigNumber* subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
+//Karatsuba artigo
+//https://www.ime.usp.br/~pf/analise_de_algoritmos/aulas/karatsuba.html
+
 BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
     if (!firstBignumber || !secondBignumber) return NULL;
 
