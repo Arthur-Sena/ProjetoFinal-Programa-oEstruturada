@@ -137,6 +137,25 @@ BigNumber* subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber*
 //Karatsuba artigo
 //https://www.ime.usp.br/~pf/analise_de_algoritmos/aulas/karatsuba.html
 
+//"Sejam u e v dois números com no máximo n dígitos cada"
+//"Seja p o número formado pelos n/2 primeiros dígitos (dígitos mais significativos) de u"
+//"Seja q o número formado pelos n/2 últimos dígitos (dígitos menos significativos) de u"
+
+// n = o número de dígitos -> maior número de dígitos entre os dois números.
+//p -> n/2 primeiros números do firstBignumber
+//q -> n/2 últimos números do firstBignumber
+//r -> n/2 primeiros números do secondBignumber
+//s -> n/2 últimos números do secondBignumber
+
+//INICIALMENTE:
+//u = p × 10^n/2 + q
+//v = r × 10^n/2 + s
+//ENTÃO:
+//u = p × 10^4 + q
+//v = r × 10^4 + s
+//y = (p + q) × (r + s)
+//Equação karatsuba: u × v = p × r × 10^n + ( y − p × r − q × s) × 10^n/2 + q × s 
+
 BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
     if (!firstBignumber || !secondBignumber) return NULL;
 
