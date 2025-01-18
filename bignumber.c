@@ -208,6 +208,16 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
+int lenghtDigits_bignumber(const BigNumber* bignumber) {
+    int count = 0;
+    Node* current = bignumber->firstNode;
+    while (current != NULL) {
+        count++;
+        current = current->nextNode;
+    }
+    return count;
+}
+
 //Karatsuba artigo
 //https://www.ime.usp.br/~pf/analise_de_algoritmos/aulas/karatsuba.html
 
@@ -231,7 +241,26 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
 //Equação karatsuba: u × v = p × r × 10^n + ( y − p × r − q × s) × 10^n/2 + q × s 
 
 BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
-   
+   /* Seguir esse raciocínio */
+   /* 
+   Karatsuba (u, v, n)
+    ☑ 1  se n ≤ 3
+    ☑ 2  devolva u × v e pare
+    □ 3  m := ⌈n/2⌉
+    □ 4  p := ⌊u/10m⌋
+    □ 5  q := u mod 10m
+    □ 6  r := ⌊v/10m⌋
+    □ 7  s := v mod 10m
+    □ 8  pr := Karatsuba (p, r, m)
+    □ 9  qs := Karatsuba (q, s, m)
+    □ 10  y := Karatsuba (p + q, r + s, m+1)
+    □ 11  uv := pr × 102m + (y − pr − qs) × 10m + qs
+    □ 12  devolva uv
+    */
+   if(lenghtDigits_bignumber(firstBignumber) <=3 && lenghtDigits_bignumber(secondBignumber) <= 3){
+    return multiply_bignumbers(firstBignumber, secondBignumber);
+   }
+   return add_bignumbers(firstBignumber, secondBignumber);
 }
 
 
@@ -322,12 +351,12 @@ BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* s
 
         // Calcular quantas vezes o divisor cabe no currentDividend
         int count = 0;
-        while (compare_bignumbers(currentDividend, divisor) >= 0) {
+        /* while (compare_bignumbers(currentDividend, divisor) >= 0) {
             BigNumber* newDividend = subtract_bignumbers(currentDividend, secondBignumber);
             free_bignumber(currentDividend);
             currentDividend = newDividend;
             count++;
-        }
+        } */
 
         // Adicionar o count ao resultado
         Node* resultNode = create_node(count + '0');

@@ -99,7 +99,7 @@ int main() {
     else if (operador == '-')
         result = verify_subtract_bignumbers(num1, num2);
     else if (operador == '*')
-        result = multiply_bignumbers(num1, num2);
+        result = karatsuba_multiply_bignumbers(num1, num2);
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
     //else if (operador == '/')
