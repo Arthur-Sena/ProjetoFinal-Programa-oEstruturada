@@ -208,85 +208,6 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
-int lenghtDigits_bignumber(const BigNumber* bignumber) {
-    int count = 0;
-    Node* current = bignumber->firstNode;
-    while (current != NULL) {
-        count++;
-        current = current->nextNode;
-    }
-    return count;
-}
-
-//Karatsuba artigo
-//https://www.ime.usp.br/~pf/analise_de_algoritmos/aulas/karatsuba.html
-
-//"Sejam u e v dois números com no máximo n dígitos cada"
-//"Seja p o número formado pelos n/2 primeiros dígitos (dígitos mais significativos) de u"
-//"Seja q o número formado pelos n/2 últimos dígitos (dígitos menos significativos) de u"
-
-// n = o número de dígitos -> maior número de dígitos entre os dois números.
-//p -> n/2 primeiros números do firstBignumber
-//q -> n/2 últimos números do firstBignumber
-//r -> n/2 primeiros números do secondBignumber
-//s -> n/2 últimos números do secondBignumber
-
-//INICIALMENTE:
-//u = p × 10^n/2 + q
-//v = r × 10^n/2 + s
-//ENTÃO:
-//u = p × 10^4 + q
-//v = r × 10^4 + s
-//y = (p + q) × (r + s)
-//Equação karatsuba: u × v = p × r × 10^n + ( y − p × r − q × s) × 10^n/2 + q × s 
-
-BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
-   /* Seguir esse raciocínio */
-   /* 
-   Karatsuba (u, v, n)
-    ☑ 1  se n ≤ 3
-    ☑ 2  devolva u × v e pare
-    □ 3  m := ⌈n/2⌉
-    □ 4  p := ⌊u/10m⌋
-    □ 5  q := u mod 10m
-    □ 6  r := ⌊v/10m⌋
-    □ 7  s := v mod 10m
-    □ 8  pr := Karatsuba (p, r, m)
-    □ 9  qs := Karatsuba (q, s, m)
-    □ 10  y := Karatsuba (p + q, r + s, m+1)
-    □ 11  uv := pr × 102m + (y − pr − qs) × 10m + qs
-    □ 12  devolva uv
-    */
-   if(lenghtDigits_bignumber(firstBignumber) <=3 && lenghtDigits_bignumber(secondBignumber) <= 3){
-    return multiply_bignumbers(firstBignumber, secondBignumber);
-   }
-   return add_bignumbers(firstBignumber, secondBignumber);
-}
-
-
-// Função para adicionar um nó ao final da lista ligada
-void append_node(BigNumber* number, Node* newNode) {
-    if (!number || !newNode) return;
-
-    if (!number->firstNode) {
-        number->firstNode = newNode;
-    } else {
-        Node* current = number->firstNode;
-        while (current->nextNode) {
-            current = current->nextNode;
-        }
-        current->nextNode = newNode;
-    }
-}
-
-// Função para remover zeros à esquerda de um número grande
-void remove_leading_zeros(BigNumber* number) {
-    while (number->firstNode && number->firstNode->digit == '0') {
-        Node* temp = number->firstNode;
-        number->firstNode = number->firstNode->nextNode;
-        free(temp);
-    }
-}
 // Função para comparar dois números grandes (retorna 0 se iguais, 1 se maior, -1 se menor)
 int compare_bignumbers(const BigNumber* first, const BigNumber* second) {
     if (!first || !second) return 0;
@@ -313,6 +234,30 @@ int compare_bignumbers(const BigNumber* first, const BigNumber* second) {
     }
 
     return 0;
+}
+
+// Função para adicionar um nó ao final da lista ligada
+void append_node(BigNumber* number, Node* newNode) {
+    if (!number || !newNode) return;
+
+    if (!number->firstNode) {
+        number->firstNode = newNode;
+    } else {
+        Node* current = number->firstNode;
+        while (current->nextNode) {
+            current = current->nextNode;
+        }
+        current->nextNode = newNode;
+    }
+}
+
+// Função para remover zeros à esquerda de um número grande
+void remove_leading_zeros(BigNumber* number) {
+    while (number->firstNode && number->firstNode->digit == '0') {
+        Node* temp = number->firstNode;
+        number->firstNode = number->firstNode->nextNode;
+        free(temp);
+    }
 }
 
 BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
@@ -392,6 +337,10 @@ char* long_to_string(long number) {
     return str;
 }
 
+BigNumber* rest_divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
+    return add_bignumbers(firstBignumber, secondBignumber);
+}
+
 BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {    
     BigNumber* result = create_bignumber("1");
     BigNumber* baseCopy = base;
@@ -423,6 +372,96 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
     free_bignumber(exponent);
     free_bignumber(numberTwo);
     return result;
+}
+
+int lenghtDigits_bignumber(const BigNumber* bignumber) {
+    int count = 0;
+    Node* current = bignumber->firstNode;
+    while (current != NULL) {
+        count++;
+        current = current->nextNode;
+    }
+    return count;
+}
+
+//Karatsuba artigo
+//https://www.ime.usp.br/~pf/analise_de_algoritmos/aulas/karatsuba.html
+
+//"Sejam u e v dois números com no máximo n dígitos cada"
+//"Seja p o número formado pelos n/2 primeiros dígitos (dígitos mais significativos) de u"
+//"Seja q o número formado pelos n/2 últimos dígitos (dígitos menos significativos) de u"
+
+// n = o número de dígitos -> maior número de dígitos entre os dois números.
+//p -> n/2 primeiros números do firstBignumber
+//q -> n/2 últimos números do firstBignumber
+//r -> n/2 primeiros números do secondBignumber
+//s -> n/2 últimos números do secondBignumber
+
+//INICIALMENTE:
+//u = p × 10^n/2 + q
+//v = r × 10^n/2 + s
+//ENTÃO:
+//u = p × 10^4 + q
+//v = r × 10^4 + s
+//y = (p + q) × (r + s)
+//Equação karatsuba: u × v = p × r × 10^n + ( y − p × r − q × s) × 10^n/2 + q × s 
+
+BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
+   /* Seguir esse raciocínio [ ETAPAS] */
+   /* 
+   Karatsuba (u, v, n)
+    ☑ 1  se n ≤ 3
+    ☑ 2  devolva u × v e pare
+    ☑ 3  m := ⌈n/2⌉
+    ☑ 4  p := ⌊u/10m⌋
+    ☑ 5  q := u mod 10m
+    ☑ 6  r := ⌊v/10m⌋
+    ☑ 7  s := v mod 10m
+    ☑ 8  pr := Karatsuba (p, r, m)
+    ☑ 9  qs := Karatsuba (q, s, m)
+    ☑ 10  y := Karatsuba (p + q, r + s, m+1)
+    ☑ 11  uv := pr × 102m + (y − pr − qs) × 10m + qs
+    ☑ 12  devolva uv
+    */
+   int moreBignumber = compare_bignumbers(firstBignumber, secondBignumber);
+   int n = lenghtDigits_bignumber(secondBignumber);
+   if(moreBignumber == 1) n = lenghtDigits_bignumber(firstBignumber);
+   if(n <=3) return multiply_bignumbers(firstBignumber, secondBignumber);
+   
+   int m = n/2;
+
+    BigNumber* expoenteBaseTen = power_bignumbers(create_bignumber("10"), create_bignumber(m+'0'));
+
+    BigNumber* p = divide_bignumbers(firstBignumber, expoenteBaseTen);
+    BigNumber* q = rest_divide_bignumbers(firstBignumber, expoenteBaseTen);
+
+    BigNumber* r = divide_bignumbers(secondBignumber, expoenteBaseTen);
+    BigNumber* s = rest_divide_bignumbers(secondBignumber, expoenteBaseTen);
+
+    BigNumber* prKaratsuba = karatsuba_multiply_bignumbers(p, r);
+    BigNumber* qsKaratsuba = karatsuba_multiply_bignumbers(q, s);
+
+    BigNumber* yKaratsuba = karatsuba_multiply_bignumbers(add_bignumbers(p, q), add_bignumbers(r, s));
+
+    BigNumber* expoenteBaseTenDoisM = power_bignumbers(create_bignumber("10"), create_bignumber((2*m)+'0'));
+    BigNumber* uv = add_bignumbers(
+        add_bignumbers(
+            karatsuba_multiply_bignumbers(prKaratsuba, expoenteBaseTenDoisM), 
+            karatsuba_multiply_bignumbers(
+                subtract_bignumbers(
+                    subtract_bignumbers(
+                        yKaratsuba,
+                        prKaratsuba
+                    ),
+                    qsKaratsuba
+                ),
+                expoenteBaseTen
+            )
+        ), 
+        qsKaratsuba
+    );
+
+    return uv;
 }
 
 void print_bignumber(const BigNumber* ptrBignumber) {
