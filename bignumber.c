@@ -340,7 +340,7 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
 }
 
 BigNumber* divide_recursive(const BigNumber* dividend, const BigNumber* divisor, BigNumber* counter, bool returnRest) {
-    if (compare_bignumbers(dividend, divisor, false) < 0) {
+    if (compare_bignumbers(dividend, divisor, true) < 0) {
         if (!returnRest)
             return counter;
         return dividend;
@@ -364,7 +364,7 @@ BigNumber* divide_recursive(const BigNumber* dividend, const BigNumber* divisor,
     return result;
 }
 
-BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber, bool returnRest) {
+BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumber, const bool returnRest) {
     if (!firstBignumber || !secondBignumber) return NULL;
 
     if (secondBignumber->firstNode == NULL || (secondBignumber->firstNode->digit == '0' && secondBignumber->firstNode->nextNode == NULL)) {
@@ -380,11 +380,13 @@ BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* s
 
     BigNumber* counter = create_bignumber("0");
     if (!counter) return NULL;
-
+    bool resultIsNegative = (firstBignumber->is_negative != secondBignumber->is_negative);
+    firstBignumber->is_negative = false;
+    secondBignumber->is_negative = false;
     BigNumber* result = divide_recursive(firstBignumber, secondBignumber, counter, returnRest);
 
     if (result)
-        result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
+        result->is_negative = resultIsNegative;
 
     free_bignumber(counter);
     return result;

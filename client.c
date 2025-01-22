@@ -71,6 +71,8 @@ int main() {
     else if (operador == '-')
         result = subtract_bignumbers(num1, num2);
     else if (operador == '*')
+        result = multiply_bignumbers(num1, num2);
+    else if (operador == '**')
         result = karatsuba_multiply_bignumbers(num1, num2);
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
@@ -79,6 +81,8 @@ int main() {
     else if (operador == '%')
         result = divide_bignumbers(num1, num2, true);
     print_bignumber(result);
+
+    scanf(" %c", &operador);
 
     free_bignumber(num1);
     free_bignumber(num2);
