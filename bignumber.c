@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#pragma region "Manipuladores de bignumber"
+
 BigNumber* create_bignumber(const char* numberInString) {
     if (!numberInString) return NULL;
 
@@ -41,6 +43,54 @@ Node* create_node(int digitReceived) {
     return newNode;
 }
 
+void append_node(BigNumber* number, Node* newNode) {
+    if (!number || !newNode) return;
+
+    if (!number->firstNode) {
+        number->firstNode = newNode;
+        number->lastNode = newNode;
+    } else {
+        number->lastNode->nextNode = newNode;
+        newNode->previousNode = number->lastNode;
+        number->lastNode = newNode;
+    }
+}
+
+BigNumber* copy_bignumber(const BigNumber* original) {
+    if (!original) return NULL;
+
+    BigNumber* copy = (BigNumber*)malloc(sizeof(BigNumber));
+    if (!copy) return NULL;
+
+    copy->firstNode = NULL;
+    copy->lastNode = NULL;
+    copy->is_negative = original->is_negative;
+
+    Node* currentNode = original->firstNode;
+    while (currentNode) {
+        Node* newNode = create_node(currentNode->digit);
+        if (!newNode) {
+            free_bignumber(copy);
+            return NULL;
+        }
+
+        append_node(copy, newNode);
+        currentNode = currentNode->nextNode;
+    }
+    return copy;
+}
+
+void remove_leading_zeros(BigNumber* number) {
+    while (number->firstNode && number->firstNode->digit == '0') {
+        Node* temp = number->firstNode;
+        number->firstNode = number->firstNode->nextNode;
+        free(temp);
+    }
+}
+
+#pragma endregion
+
+#pragma region "Funções auxiliares"
 void free_bignumber(BigNumber* ptrBignumber) {
     if (!ptrBignumber) return;
 
@@ -67,13 +117,14 @@ void print_bignumber(const BigNumber* ptrBignumber) {
     printf("\n");
 }
 
-#pragma region "Funções auxiliares"
 // Função para comparar dois números grandes (retorna 0 se iguais, 1 se maior, -1 se menor)
-int compare_bignumbers(const BigNumber* first, const BigNumber* second) {
+int compare_bignumbers(const BigNumber* first, const BigNumber* second, const bool ignoreSign) {
     if (!first || !second) return 0;
-
-    if (!first->is_negative && second->is_negative) return 1;
-    else if (first->is_negative && !second->is_negative) return -1;
+    
+    if (!ignoreSign){
+        if (!first->is_negative && second->is_negative) return 1;
+        else if (first->is_negative && !second->is_negative) return -1;
+    }
 
     Node* firstNode = first->firstNode;
     Node* secondNode = second->firstNode;
@@ -99,28 +150,14 @@ int compare_bignumbers(const BigNumber* first, const BigNumber* second) {
     return 0;
 }
 
-// Função para adicionar um nó ao final da lista ligada
-void append_node(BigNumber* number, Node* newNode) {
-    if (!number || !newNode) return;
-
-    if (!number->firstNode) {
-        number->firstNode = newNode;
-    } else {
-        Node* current = number->firstNode;
-        while (current->nextNode) {
-            current = current->nextNode;
-        }
-        current->nextNode = newNode;
+int lenghtDigits_bignumber(const BigNumber* bignumber) {
+    int count = 0;
+    Node* current = bignumber->firstNode;
+    while (current != NULL) {
+        count++;
+        current = current->nextNode;
     }
-}
-
-// Função para remover zeros à esquerda de um número grande
-void remove_leading_zeros(BigNumber* number) {
-    while (number->firstNode && number->firstNode->digit == '0') {
-        Node* temp = number->firstNode;
-        number->firstNode = number->firstNode->nextNode;
-        free(temp);
-    }
+    return count;
 }
 #pragma endregion 
 
@@ -173,7 +210,7 @@ BigNumber* subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     if (firstBignumber->is_negative != secondBignumber->is_negative)
         return add_bignumbers(firstBignumber, secondBignumber);
 
-    int comparison = compare_bignumbers(firstBignumber, secondBignumber);
+    int comparison = compare_bignumbers(firstBignumber, secondBignumber, false);
     if (comparison == 0)
         return create_bignumber("0");
 
@@ -302,110 +339,55 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
-BigNumber* copy_bignumber(const BigNumber* original) {
-    if (!original) return NULL;
-
-    // Cria um novo BigNumber vazio
-    BigNumber* copy = create_bignumber("0");
-    if (!copy) return NULL;
-
-    copy->is_negative = original->is_negative;
-
-    // Itera pelos nós do BigNumber original
-    Node* currentNode = original->firstNode;
-    while (currentNode) {
-        // Cria um novo nó com o mesmo dígito do nó atual
-        Node* newNode = create_node(currentNode->digit);
-        if (!newNode) {
-            free_bignumber(copy);
-            return NULL;
-        }
-
-        // Adiciona o novo nó ao BigNumber copiado
-        append_node(copy, newNode);
-
-        currentNode = currentNode->nextNode;
+BigNumber* divide_recursive(const BigNumber* dividend, const BigNumber* divisor, BigNumber* counter, bool returnRest) {
+    if (compare_bignumbers(dividend, divisor, false) < 0) {
+        if (!returnRest)
+            return counter;
+        return dividend;
     }
-    remove_leading_zeros(copy);
-    return copy;
-}
 
-BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
-    if (!firstBignumber || !secondBignumber) return NULL;
+    BigNumber* newDividend = subtract_bignumbers(dividend, divisor);
+    if (!newDividend) return NULL;
 
-    if (secondBignumber->firstNode == NULL || 
-        (secondBignumber->firstNode->digit == '0' && secondBignumber->firstNode->nextNode == NULL)) {
-        fprintf(stderr, "Erro: Divisão por zero.\n");
-        return NULL;
-    }
-    
-    BigNumber* result = create_bignumber("0");
-    if (!result) return NULL;
-
-    BigNumber* currentDividend = copy_bignumber(firstBignumber);
-    if (!currentDividend) {
-        free_bignumber(result);
+    BigNumber* newCounter = add_bignumbers(counter, create_bignumber("1"));
+    if (!newCounter) {
+        free_bignumber(newDividend);
         return NULL;
     }
 
-    BigNumber* increment = create_bignumber("1");
-    if (!increment) {
-        free_bignumber(result);
-        free_bignumber(currentDividend);
-        return NULL;
-    }
+    BigNumber* result = divide_recursive(copy_bignumber(newDividend), divisor, newCounter, returnRest);
 
-    while (compare_bignumbers(currentDividend, secondBignumber) >= 0) {
-        BigNumber* temp = subtract_bignumbers(currentDividend, secondBignumber);
-        print_bignumber(temp);
-        if (!temp) {
-            free_bignumber(result);
-            free_bignumber(currentDividend);
-            free_bignumber(increment);
-            return NULL;
-        }
+    free_bignumber(newDividend);
+    free_bignumber(newCounter);
+    free_bignumber(dividend);
 
-        free_bignumber(currentDividend);
-        currentDividend = temp;
-        print_bignumber(currentDividend);
-        
-        BigNumber* newResult = add_bignumbers(result, increment);
-        if (!newResult) {
-            free_bignumber(result);
-            free_bignumber(currentDividend);
-            free_bignumber(increment);
-            return NULL;
-        }
-        
-        free_bignumber(result);
-        result = newResult;
-    }
-
-    result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
-    free_bignumber(increment);
-    free_bignumber(currentDividend);
     return result;
 }
 
-long bignumber_to_long(const BigNumber* bignumber) {
-    long result = 0;
-    Node* current = bignumber->firstNode;
-    while (current) {
-        result = result * 10 + (current->digit - '0');
-        current = current->nextNode;
+BigNumber* divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber, bool returnRest) {
+    if (!firstBignumber || !secondBignumber) return NULL;
+
+    if (secondBignumber->firstNode == NULL || (secondBignumber->firstNode->digit == '0' && secondBignumber->firstNode->nextNode == NULL)) {
+        printf("Erro: Divisao por zero.\n");
+        return NULL;
     }
-    return bignumber->is_negative ? -result : result;
-}
 
-char* long_to_string(long number) {
-    int length = snprintf(NULL, 0, "%ld", number);
-    char* str = (char*)malloc(length + 1);
-    snprintf(str, length + 1, "%ld", number);
-    return str;
-}
+    int comparison = compare_bignumbers(firstBignumber, secondBignumber, true);
+    if (comparison < 0)
+        return create_bignumber("0");
+    else if (comparison == 0)
+        return create_bignumber("1");
 
-BigNumber* rest_divide_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber){
-    return subtract_bignumbers(firstBignumber, divide_bignumbers(firstBignumber, secondBignumber));
+    BigNumber* counter = create_bignumber("0");
+    if (!counter) return NULL;
+
+    BigNumber* result = divide_recursive(firstBignumber, secondBignumber, counter, returnRest);
+
+    if (result)
+        result->is_negative = (firstBignumber->is_negative != secondBignumber->is_negative);
+
+    free_bignumber(counter);
+    return result;
 }
 
 BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {    
@@ -423,14 +405,9 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
         BigNumber* temp = multiply_bignumbers(baseCopy, baseCopy);
         free_bignumber(baseCopy);
         baseCopy = temp;        
-        /*
-            QUANDO A FUNÇÂO DE DIVISÃO ESTIVER FEITA, É BOM DESCOMENTAR ESSE CÓDIGO E APAGAR
-            AS FUNÇÕES bignumber_to_long E long_to_string
-            
-            SUBSTITUIR O CÓDIGO "BigNumber* half_exp = create_bignumber(long_to_string((exponentLong / 2)))" 
-            POR ESSE:           BigNumber* half_exp = divide_bignumbers(exponent, numberTwo)
-        */
-        BigNumber* half_exp = create_bignumber(long_to_string( bignumber_to_long(exponent) / 2));
+
+
+        BigNumber* half_exp = divide_bignumbers(exponent, numberTwo, false);
         free_bignumber(exponent);
         exponent = half_exp;
     }
@@ -439,16 +416,6 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
     free_bignumber(exponent);
     free_bignumber(numberTwo);
     return result;
-}
-
-int lenghtDigits_bignumber(const BigNumber* bignumber) {
-    int count = 0;
-    Node* current = bignumber->firstNode;
-    while (current != NULL) {
-        count++;
-        current = current->nextNode;
-    }
-    return count;
 }
 
 //Karatsuba artigo
@@ -490,7 +457,7 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
     ☑ 11  uv := pr × 102m + (y − pr − qs) × 10m + qs
     ☑ 12  devolva uv
     */
-   int moreBignumber = compare_bignumbers(firstBignumber, secondBignumber);
+   int moreBignumber = compare_bignumbers(firstBignumber, secondBignumber, false);
    int n = lenghtDigits_bignumber(secondBignumber);
    if(moreBignumber == 1) n = lenghtDigits_bignumber(firstBignumber);
    if(n <=3) return multiply_bignumbers(firstBignumber, secondBignumber);
@@ -499,11 +466,11 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
 
     BigNumber* expoenteBaseTen = power_bignumbers(create_bignumber("10"), create_bignumber(m+'0'));
 
-    BigNumber* p = divide_bignumbers(firstBignumber, expoenteBaseTen);
-    BigNumber* q = rest_divide_bignumbers(firstBignumber, expoenteBaseTen);
+    BigNumber* p = divide_bignumbers(firstBignumber, expoenteBaseTen, false);
+    BigNumber* q = divide_bignumbers(firstBignumber, expoenteBaseTen, true);
 
-    BigNumber* r = divide_bignumbers(secondBignumber, expoenteBaseTen);
-    BigNumber* s = rest_divide_bignumbers(secondBignumber, expoenteBaseTen);
+    BigNumber* r = divide_bignumbers(secondBignumber, expoenteBaseTen, true);
+    BigNumber* s = divide_bignumbers(secondBignumber, expoenteBaseTen, false);
 
     BigNumber* prKaratsuba = karatsuba_multiply_bignumbers(p, r);
     BigNumber* qsKaratsuba = karatsuba_multiply_bignumbers(q, s);

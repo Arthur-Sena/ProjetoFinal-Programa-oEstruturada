@@ -31,7 +31,7 @@ void free_bignumber(BigNumber* ptrBignumber);
 BigNumber* add_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 BigNumber* subtract_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 BigNumber* multiply_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
-BigNumber* divide_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
+BigNumber* divide_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber, const bool returnRest);
 BigNumber* power_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 void print_bignumber(const BigNumber* ptrBignumber);
 

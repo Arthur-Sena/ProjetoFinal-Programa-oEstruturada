@@ -48,11 +48,8 @@ int main() {
     char *firstInput = NULL, *secondInput = NULL, operador;
     size_t lenFirstInput = 0, lenSecondInput = 0;
 
-    printf("Primeiro numero: ");
     getline(&firstInput, &lenFirstInput, stdin);
-    printf("\nSegundo numero: ");
     getline(&secondInput, &lenSecondInput, stdin);
-    printf("\nOperação (+, -, *, /): ");
     scanf(" %c", &operador);
 
     firstInput[strcspn(firstInput, "\n")] = '\0';
@@ -78,8 +75,9 @@ int main() {
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
     else if (operador == '/')
-        result = divide_bignumbers(num1, num2);
-
+        result = divide_bignumbers(num1, num2, false);
+    else if (operador == '%')
+        result = divide_bignumbers(num1, num2, true);
     print_bignumber(result);
 
     free_bignumber(num1);
