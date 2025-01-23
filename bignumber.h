@@ -33,6 +33,7 @@ BigNumber* subtract_bignumbers(const BigNumber* firstNumber, const BigNumber* se
 BigNumber* multiply_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
 BigNumber* divide_bignumbers(BigNumber* firstNumber, BigNumber* secondNumber, const bool returnRest);
 BigNumber* power_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber);
+BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstNumber, const BigNumber* secondNumber, const BigNumber* nNumber);
 void print_bignumber(const BigNumber* ptrBignumber);
 
 #pragma endregion

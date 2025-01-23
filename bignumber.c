@@ -351,31 +351,6 @@ BigNumber* multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber*
     return result;
 }
 
-BigNumber* divide_recursive(const BigNumber* dividend, const BigNumber* divisor, BigNumber* counter, bool returnRest) {
-    if (compare_bignumbers(dividend, divisor, true) < 0) {
-        if (!returnRest)
-            return counter;
-        return dividend;
-    }
-
-    BigNumber* newDividend = subtract_bignumbers(dividend, divisor);
-    if (!newDividend) return NULL;
-
-    BigNumber* newCounter = add_bignumbers(counter, create_bignumber("1"));
-    if (!newCounter) {
-        free_bignumber(newDividend);
-        return NULL;
-    }
-
-    BigNumber* result = divide_recursive(copy_bignumber(newDividend), divisor, newCounter, returnRest);
-
-    free_bignumber(newDividend);
-    free_bignumber(newCounter);
-    free_bignumber(dividend);
-
-    return result;
-}
-
 BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumber, const bool returnRest) {
     if (!firstBignumber || !secondBignumber) return NULL;
 
@@ -384,23 +359,59 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
         return NULL;
     }
 
+    if (secondBignumber->firstNode->digit == '1' && secondBignumber->firstNode->nextNode == NULL) {
+        return firstBignumber;
+        return NULL;
+    }
+
     int comparison = compare_bignumbers(firstBignumber, secondBignumber, true);
     if (comparison < 0)
         return create_bignumber("0");
     else if (comparison == 0)
         return create_bignumber("1");
-
+    
+    BigNumber* increment = create_bignumber("1");
     BigNumber* counter = create_bignumber("0");
     if (!counter) return NULL;
     bool resultIsNegative = (firstBignumber->is_negative != secondBignumber->is_negative);
     firstBignumber->is_negative = false;
     secondBignumber->is_negative = false;
-    BigNumber* result = divide_recursive(firstBignumber, secondBignumber, counter, returnRest);
 
-    if (result)
-        result->is_negative = resultIsNegative;
+    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
+    if (!result) return NULL;
+    result = copy_bignumber(firstBignumber);
 
+    while(true){
+        BigNumber* newDividend = subtract_bignumbers(result, secondBignumber);
+        if (!newDividend) return NULL;
+
+        BigNumber* newCounter = add_bignumbers(counter, increment);
+
+        if (!newCounter) {
+            free_bignumber(newDividend);
+            return NULL;
+        } else {
+            free_bignumber(counter);
+            counter = copy_bignumber(newCounter);
+        }
+                
+        if (compare_bignumbers(newDividend, secondBignumber, true) < 0){
+            free_bignumber(result);
+            result = returnRest ? newDividend : counter;
+            free_bignumber(newDividend);
+            free_bignumber(newCounter);
+            break;
+        }
+        free_bignumber(result);
+        result = copy_bignumber(newDividend);
+
+        free_bignumber(newDividend);
+        free_bignumber(newCounter);
+    }
+
+    free_bignumber(increment);
     free_bignumber(counter);
+    result->is_negative = resultIsNegative;
     return result;
 }
 

@@ -79,9 +79,9 @@ int main() {
         result = divide_bignumbers(num1, num2, false);
     else if (operador == '%')
         result = divide_bignumbers(num1, num2, true);
+    else if (operador == 'x')
+        result = multiply_bignumbers(num1, num2);
     print_bignumber(result);
-
-    scanf(" %c", &operador);
 
     free_bignumber(num1);
     free_bignumber(num2);
