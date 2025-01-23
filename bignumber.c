@@ -150,14 +150,26 @@ int compare_bignumbers(const BigNumber* first, const BigNumber* second, const bo
     return 0;
 }
 
-int lenghtDigits_bignumber(const BigNumber* bignumber) {
+BigNumber* lenghtDigits_bignumber(const BigNumber* bignumber) {
     int count = 0;
     Node* current = bignumber->firstNode;
     while (current != NULL) {
         count++;
         current = current->nextNode;
     }
-    return count;
+
+    int digits_needed = snprintf(NULL, 0, "%d", count);
+    char* countAsString = (char*)malloc(digits_needed + 1);
+
+    if (!countAsString) {
+        printf("Erro ao alocar memória para a string de contagem.\n");
+        return NULL;
+    }
+    snprintf(countAsString, digits_needed + 1, "%d", count);
+    BigNumber* result = create_bignumber(countAsString);
+    free(countAsString);
+
+    return result;
 }
 #pragma endregion 
 
@@ -442,7 +454,7 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
 //y = (p + q) × (r + s)
 //Equação karatsuba: u × v = p × r × 10^n + ( y − p × r − q × s) × 10^n/2 + q × s 
 
-BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
+BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber, const BigNumber* nNumber) {
    /* Seguir esse raciocínio [ ETAPAS] */
    /* 
    Karatsuba (u, v, n)
@@ -459,14 +471,41 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
     ☑ 11  uv := pr × 102m + (y − pr − qs) × 10m + qs
     ☑ 12  devolva uv
     */
-   int moreBignumber = compare_bignumbers(firstBignumber, secondBignumber, false);
-   int n = lenghtDigits_bignumber(secondBignumber);
-   if(moreBignumber == 1) n = lenghtDigits_bignumber(firstBignumber);
-   if(n <=3) return multiply_bignumbers(firstBignumber, secondBignumber);
-   
-   int m = n/2;
 
-    BigNumber* expoenteBaseTen = power_bignumbers(create_bignumber("10"), create_bignumber(m+'0'));
+    BigNumber* bgnTen = create_bignumber("10");
+    BigNumber* bgnThree = create_bignumber("3");
+    BigNumber* bgnZero = create_bignumber("0");
+    BigNumber* bgnTwo = create_bignumber("2");
+    BigNumber* bgnOne = create_bignumber("1");
+    BigNumber* n = NULL;
+
+    if(compare_bignumbers(nNumber, bgnZero, false) == 1){
+        n = nNumber;
+    } else if(compare_bignumbers(nNumber, bgnZero, false) == 0) {
+        int moreBignumber = compare_bignumbers(firstBignumber, secondBignumber, false);
+        n = lenghtDigits_bignumber(secondBignumber);
+        if(moreBignumber == 1) n = lenghtDigits_bignumber(firstBignumber);
+    } else {
+        free_bignumber(bgnTen);
+        free_bignumber(bgnThree);
+        free_bignumber(bgnOne);
+        free_bignumber(bgnTwo);
+        return bgnZero;
+    }
+
+   if(compare_bignumbers(n, bgnThree, false) != 1) {
+        free_bignumber(n);
+        free_bignumber(bgnTen);
+        free_bignumber(bgnThree);
+        free_bignumber(bgnZero);
+        free_bignumber(bgnOne);
+        free_bignumber(bgnTwo);
+        return multiply_bignumbers(firstBignumber, secondBignumber);
+   }
+
+   BigNumber* m = divide_bignumbers(n, 2, false);
+
+    BigNumber* expoenteBaseTen = power_bignumbers(bgnTen, m);
 
     BigNumber* p = divide_bignumbers(firstBignumber, expoenteBaseTen, false);
     BigNumber* q = divide_bignumbers(firstBignumber, expoenteBaseTen, true);
@@ -474,15 +513,15 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
     BigNumber* r = divide_bignumbers(secondBignumber, expoenteBaseTen, true);
     BigNumber* s = divide_bignumbers(secondBignumber, expoenteBaseTen, false);
 
-    BigNumber* prKaratsuba = karatsuba_multiply_bignumbers(p, r);
-    BigNumber* qsKaratsuba = karatsuba_multiply_bignumbers(q, s);
+    BigNumber* prKaratsuba = karatsuba_multiply_bignumbers(p, r, m);
+    BigNumber* qsKaratsuba = karatsuba_multiply_bignumbers(q, s, m);
+    
+    BigNumber* yKaratsuba = karatsuba_multiply_bignumbers(add_bignumbers(p, q), add_bignumbers(r, s), add_bignumbers(m, bgnOne));
 
-    BigNumber* yKaratsuba = karatsuba_multiply_bignumbers(add_bignumbers(p, q), add_bignumbers(r, s));
-
-    BigNumber* expoenteBaseTenDoisM = power_bignumbers(create_bignumber("10"), create_bignumber((2*m)+'0'));
+    BigNumber* expoenteBaseTenDoisM = power_bignumbers(bgnTen, multiply_bignumbers(m, bgnTwo));
     BigNumber* uv = add_bignumbers(
         add_bignumbers(
-            karatsuba_multiply_bignumbers(prKaratsuba, expoenteBaseTenDoisM), 
+            karatsuba_multiply_bignumbers(prKaratsuba, expoenteBaseTenDoisM, bgnZero), 
             karatsuba_multiply_bignumbers(
                 subtract_bignumbers(
                     subtract_bignumbers(
@@ -491,11 +530,27 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
                     ),
                     qsKaratsuba
                 ),
-                expoenteBaseTen
+                expoenteBaseTen,
+                bgnZero
             )
         ), 
         qsKaratsuba
     );
-
+    free_bignumber(prKaratsuba);
+    free_bignumber(qsKaratsuba);
+    free_bignumber(yKaratsuba);
+    free_bignumber(expoenteBaseTen);
+    free_bignumber(expoenteBaseTenDoisM);
+    free_bignumber(p);
+    free_bignumber(q);
+    free_bignumber(r);
+    free_bignumber(s);
+    free_bignumber(n);
+    free_bignumber(m);
+    free_bignumber(bgnTen);
+    free_bignumber(bgnThree);
+    free_bignumber(bgnZero);
+    free_bignumber(bgnOne);
+    free_bignumber(bgnTwo);
     return uv;
 }

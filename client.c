@@ -57,6 +57,7 @@ int main() {
 
     BigNumber *num1 = create_bignumber(firstInput);
     BigNumber *num2 = create_bignumber(secondInput);
+    BigNumber *mm = create_bignumber("0");
     BigNumber *result = NULL;
 
     if (!num1 || !num2) {
@@ -70,10 +71,8 @@ int main() {
         result = verify_sum_bignumbers(num1, num2);
     else if (operador == '-')
         result = subtract_bignumbers(num1, num2);
-    //else if (operador == '*')
-    //    result = multiply_bignumbers(num1, num2);
     else if (operador == '*')
-        result = karatsuba_multiply_bignumbers(num1, num2);
+        result = karatsuba_multiply_bignumbers(num1, num2, mm);
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
     else if (operador == '/')
@@ -86,6 +85,7 @@ int main() {
 
     free_bignumber(num1);
     free_bignumber(num2);
+    free_bignumber(mm);
     free_bignumber(result);
     
     return 0;
