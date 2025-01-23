@@ -370,7 +370,7 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
 
     if (secondBignumber->firstNode->digit == '1' && secondBignumber->firstNode->nextNode == NULL) {
         return firstBignumber;
-        return NULL;
+        //return NULL;
     }
 
     int comparison = compare_bignumbers(firstBignumber, secondBignumber, true);
@@ -405,15 +405,14 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
         }
                 
         if (compare_bignumbers(newDividend, secondBignumber, true) < 0){
-            free_bignumber(result);
             result = returnRest ? newDividend : counter;
+            free_bignumber(result);
             free_bignumber(newDividend);
             free_bignumber(newCounter);
             break;
         }
-        free_bignumber(result);
+        
         result = copy_bignumber(newDividend);
-
         free_bignumber(newDividend);
         free_bignumber(newCounter);
     }
