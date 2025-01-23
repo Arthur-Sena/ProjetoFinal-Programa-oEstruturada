@@ -42,6 +42,13 @@ BigNumber* verify_sum_bignumbers(const BigNumber* firstBignumber, const BigNumbe
     }
 }
 
+BigNumber* verify_multiplicationKaratsuba_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
+    BigNumber *mm = create_bignumber("0");
+    BigNumber* result = karatsuba_multiply_bignumbers(firstBignumber, secondBignumber, mm);
+    free_bignumber(mm);
+    return result;
+}
+
 #pragma endregion
 
 int main() {
@@ -57,8 +64,10 @@ int main() {
 
     BigNumber *num1 = create_bignumber(firstInput);
     BigNumber *num2 = create_bignumber(secondInput);
-    BigNumber *mm = create_bignumber("0");
     BigNumber *result = NULL;
+
+    free(firstInput);
+    free(secondInput);
 
     if (!num1 || !num2) {
         printf("Erro ao criar BigNumber.\n");
@@ -72,7 +81,7 @@ int main() {
     else if (operador == '-')
         result = subtract_bignumbers(num1, num2);
     else if (operador == '*')
-        result = karatsuba_multiply_bignumbers(num1, num2, mm);
+        result = verify_multiplicationKaratsuba_bignumbers(num1, num2);
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
     else if (operador == '/')
@@ -85,7 +94,6 @@ int main() {
 
     free_bignumber(num1);
     free_bignumber(num2);
-    free_bignumber(mm);
     free_bignumber(result);
     
     return 0;
