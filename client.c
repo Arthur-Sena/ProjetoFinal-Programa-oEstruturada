@@ -70,9 +70,9 @@ int main() {
         result = verify_sum_bignumbers(num1, num2);
     else if (operador == '-')
         result = subtract_bignumbers(num1, num2);
+    //else if (operador == '*')
+    //    result = multiply_bignumbers(num1, num2);
     else if (operador == '*')
-        result = multiply_bignumbers(num1, num2);
-    else if (operador == '**')
         result = karatsuba_multiply_bignumbers(num1, num2);
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
