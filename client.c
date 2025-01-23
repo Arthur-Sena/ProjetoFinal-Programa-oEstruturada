@@ -42,42 +42,14 @@ BigNumber* verify_sum_bignumbers(const BigNumber* firstBignumber, const BigNumbe
     }
 }
 
-BigNumber* verify_subtract_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
-    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
-    bool firstBignumIsBigger = first_bignum_is_bigger(firstBignumber, secondBignumber);
-    if (firstBignumber->is_negative && secondBignumber->is_negative) {
-        if (firstBignumIsBigger){
-            result = subtract_bignumbers(firstBignumber, secondBignumber);
-            result->is_negative = true;
-        }
-        else {
-            result = subtract_bignumbers(secondBignumber, firstBignumber);
-            result->is_negative = false;
-        }
-    }
-    else if (firstBignumber->is_negative || secondBignumber->is_negative)
-            result = add_bignumbers(firstBignumber, secondBignumber);
-    else {
-        if (firstBignumIsBigger)
-            result = subtract_bignumbers(firstBignumber, secondBignumber);
-        else
-            result = subtract_bignumbers(secondBignumber, firstBignumber);
-        result->is_negative = !firstBignumIsBigger;
-    }
-    return result;
-}
-
 #pragma endregion
 
 int main() {
     char *firstInput = NULL, *secondInput = NULL, operador;
     size_t lenFirstInput = 0, lenSecondInput = 0;
 
-    printf("Primeiro numero: ");
     getline(&firstInput, &lenFirstInput, stdin);
-    printf("\nSegundo numero: ");
     getline(&secondInput, &lenSecondInput, stdin);
-    printf("\nOperação (+, -, *, /): ");
     scanf(" %c", &operador);
 
     firstInput[strcspn(firstInput, "\n")] = '\0';
@@ -97,19 +69,21 @@ int main() {
     if (operador == '+')
         result = verify_sum_bignumbers(num1, num2);
     else if (operador == '-')
-        result = verify_subtract_bignumbers(num1, num2);
+        result = subtract_bignumbers(num1, num2);
+    //else if (operador == '*')
+    //    result = multiply_bignumbers(num1, num2);
     else if (operador == '*')
-        result = multiply_bignumbers(num1, num2);
+        result = karatsuba_multiply_bignumbers(num1, num2);
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
-    //else if (operador == '/')
-    //    result = divide_bignumbers(num1, num2);
-
+    else if (operador == '/')
+        result = divide_bignumbers(num1, num2, false);
+    else if (operador == '%')
+        result = divide_bignumbers(num1, num2, true);
     print_bignumber(result);
 
     scanf(" %c", &operador);
 
-    //Liberando memória
     free_bignumber(num1);
     free_bignumber(num2);
     free_bignumber(result);
