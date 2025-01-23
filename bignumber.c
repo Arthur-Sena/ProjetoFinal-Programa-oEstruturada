@@ -171,6 +171,23 @@ BigNumber* lenghtDigits_bignumber(const BigNumber* bignumber) {
 
     return result;
 }
+
+long bignumber_to_long(const BigNumber* bignumber) {
+    long result = 0;
+    Node* current = bignumber->firstNode;
+    while (current) {
+        result = result * 10 + (current->digit - '0');
+        current = current->nextNode;
+    }
+    return bignumber->is_negative ? -result : result;
+}
+
+char* long_to_string(long number) {
+    int length = snprintf(NULL, 0, "%ld", number);
+    char* str = (char*)malloc(length + 1);
+    snprintf(str, length + 1, "%ld", number);
+    return str;
+}
 #pragma endregion 
 
 BigNumber* add_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
@@ -370,8 +387,52 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
 
     if (secondBignumber->firstNode->digit == '1' && secondBignumber->firstNode->nextNode == NULL) {
         return firstBignumber;
-        //return NULL;
     }
+
+    BigNumber* tamanhoFirstBigNumber = lenghtDigits_bignumber(firstBignumber);
+    BigNumber* tamanhoSecondBigNumber = lenghtDigits_bignumber(secondBignumber);
+
+    BigNumber* increment = create_bignumber("1");
+    BigNumber* counter = create_bignumber("0");
+    if (!counter) return NULL;
+    
+    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
+    if (!result) return NULL;
+    result = copy_bignumber(firstBignumber);
+
+    BigNumber* difTamanhoBigNumbers = subtract_bignumbers(tamanhoFirstBigNumber, tamanhoSecondBigNumber);
+    BigNumber* two = create_bignumber("2");
+    BigNumber* ten = create_bignumber("10");
+    if (compare_bignumbers(difTamanhoBigNumbers, two, true) > 0)
+    {
+        free_bignumber(counter);
+        free_bignumber(result);
+        
+        counter = power_bignumbers(ten, subtract_bignumbers(difTamanhoBigNumbers, increment));
+        BigNumber* multiplo = (BigNumber*)malloc(sizeof(BigNumber));
+        multiplo = multiply_bignumbers(secondBignumber, counter);
+        result = subtract_bignumbers(firstBignumber, multiplo); 
+
+        int isEqual = compare_bignumbers(result, firstBignumber, true);
+        if (isEqual == 0){
+            free_bignumber(difTamanhoBigNumbers);
+            free_bignumber(tamanhoFirstBigNumber);
+            free_bignumber(tamanhoSecondBigNumber);
+            free_bignumber(two);
+            free_bignumber(ten);
+            free_bignumber(result);
+            free_bignumber(increment);
+            if (returnRest)
+                free_bignumber(counter);
+            return !returnRest ? counter : create_bignumber("0");
+        }
+    } 
+    free_bignumber(difTamanhoBigNumbers);
+    free_bignumber(tamanhoFirstBigNumber);
+    free_bignumber(tamanhoSecondBigNumber);
+    free_bignumber(two);
+    free_bignumber(ten);
+    free_bignumber(difTamanhoBigNumbers);
 
     int comparison = compare_bignumbers(firstBignumber, secondBignumber, true);
     if (comparison < 0)
@@ -379,16 +440,9 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
     else if (comparison == 0)
         return create_bignumber("1");
     
-    BigNumber* increment = create_bignumber("1");
-    BigNumber* counter = create_bignumber("0");
-    if (!counter) return NULL;
     bool resultIsNegative = (firstBignumber->is_negative != secondBignumber->is_negative);
     firstBignumber->is_negative = false;
     secondBignumber->is_negative = false;
-
-    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
-    if (!result) return NULL;
-    result = copy_bignumber(firstBignumber);
 
     while(true){
         BigNumber* newDividend = subtract_bignumbers(result, secondBignumber);
@@ -439,8 +493,8 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
         free_bignumber(baseCopy);
         baseCopy = temp;        
 
-
-        BigNumber* half_exp = divide_bignumbers(exponent, numberTwo, false);
+        BigNumber* half_exp = create_bignumber(long_to_string( bignumber_to_long(exponent) / 2));
+        //BigNumber* half_exp = divide_bignumbers(exponent, numberTwo, false);
         free_bignumber(exponent);
         exponent = half_exp;
     }
