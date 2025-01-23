@@ -451,45 +451,7 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
     return result;
 }
 
-//Karatsuba artigo
-//https://www.ime.usp.br/~pf/analise_de_algoritmos/aulas/karatsuba.html
-
-//"Sejam u e v dois números com no máximo n dígitos cada"
-//"Seja p o número formado pelos n/2 primeiros dígitos (dígitos mais significativos) de u"
-//"Seja q o número formado pelos n/2 últimos dígitos (dígitos menos significativos) de u"
-
-// n = o número de dígitos -> maior número de dígitos entre os dois números.
-//p -> n/2 primeiros números do firstBignumber
-//q -> n/2 últimos números do firstBignumber
-//r -> n/2 primeiros números do secondBignumber
-//s -> n/2 últimos números do secondBignumber
-
-//INICIALMENTE:
-//u = p × 10^n/2 + q
-//v = r × 10^n/2 + s
-//ENTÃO:
-//u = p × 10^4 + q
-//v = r × 10^4 + s
-//y = (p + q) × (r + s)
-//Equação karatsuba: u × v = p × r × 10^n + ( y − p × r − q × s) × 10^n/2 + q × s 
-
 BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber, const BigNumber* nNumber) {
-   /* Seguir esse raciocínio [ ETAPAS] */
-   /* 
-   Karatsuba (u, v, n)
-    ☑ 1  se n ≤ 3
-    ☑ 2  devolva u × v e pare
-    ☑ 3  m := ⌈n/2⌉
-    ☑ 4  p := ⌊u/10m⌋
-    ☑ 5  q := u mod 10m
-    ☑ 6  r := ⌊v/10m⌋
-    ☑ 7  s := v mod 10m
-    ☑ 8  pr := Karatsuba (p, r, m)
-    ☑ 9  qs := Karatsuba (q, s, m)
-    ☑ 10  y := Karatsuba (p + q, r + s, m+1)
-    ☑ 11  uv := pr × 102m + (y − pr − qs) × 10m + qs
-    ☑ 12  devolva uv
-    */
 
     BigNumber* bgnTen = create_bignumber("10");
     BigNumber* bgnThree = create_bignumber("3");
@@ -522,7 +484,7 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
         return multiply_bignumbers(firstBignumber, secondBignumber);
    }
 
-   BigNumber* m = divide_bignumbers(n, 2, false);
+   BigNumber* m = divide_bignumbers(n, bgnTwo, false);
 
     BigNumber* expoenteBaseTen = power_bignumbers(bgnTen, m);
 
