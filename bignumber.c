@@ -174,6 +174,8 @@ BigNumber* lenghtDigits_bignumber(const BigNumber* bignumber) {
 #pragma endregion 
 
 BigNumber* add_bignumbers(const BigNumber* firstBignumber, const BigNumber* secondBignumber) {
+    if (!firstBignumber || !secondBignumber) return NULL;
+    
     BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
     if (!result) return NULL;
     result->firstNode = NULL;
@@ -200,6 +202,10 @@ BigNumber* add_bignumbers(const BigNumber* firstBignumber, const BigNumber* seco
         }
 
         Node* newNode = create_node(digitResult + '0');
+        if (!newNode) {
+            free_bignumber(result);
+            return NULL;
+        }
         newNode->nextNode = result->firstNode;
         newNode->previousNode = NULL;
 
@@ -212,6 +218,9 @@ BigNumber* add_bignumbers(const BigNumber* firstBignumber, const BigNumber* seco
         if (lastNodeFirstNumber) lastNodeFirstNumber = lastNodeFirstNumber->previousNode;
         if (lastNodeSecondNumber) lastNodeSecondNumber = lastNodeSecondNumber->previousNode;
     }
+
+    free(lastNodeFirstNumber);
+    free(lastNodeSecondNumber);
 
     return result;
 }
