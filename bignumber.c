@@ -480,11 +480,16 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
 
 BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {    
     BigNumber* result = create_bignumber("1");
-    BigNumber* baseCopy = base;
     BigNumber* numberTwo = create_bignumber("2");
 
-    while (!(exponent->firstNode->digit == '0' && exponent->firstNode->nextNode == NULL)) {
-        if ((exponent->lastNode->digit - '0') % 2 != 0) {
+    BigNumber* baseCopy = (BigNumber*)malloc(sizeof(BigNumber));
+    baseCopy = copy_bignumber(base);
+    
+    BigNumber* exponentCopy = (BigNumber*)malloc(sizeof(BigNumber));
+    exponentCopy = copy_bignumber(exponent);
+    
+    while (!(exponentCopy->firstNode->digit == '0' && exponentCopy->firstNode->nextNode == NULL)) {
+        if ((exponentCopy->lastNode->digit - '0') % 2 != 0) {
             BigNumber* temp = multiply_bignumbers(result, baseCopy);
             free_bignumber(result);
             result = temp;
@@ -494,14 +499,14 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
         free_bignumber(baseCopy);
         baseCopy = temp;        
 
-        BigNumber* half_exp = create_bignumber(long_to_string( bignumber_to_long(exponent) / 2));
-        //BigNumber* half_exp = divide_bignumbers(exponent, numberTwo, false);
-        free_bignumber(exponent);
-        exponent = half_exp;
+        //BigNumber* half_exp = create_bignumber(long_to_string( bignumber_to_long(exponent) / 2));
+        BigNumber* half_exp = divide_bignumbers(exponentCopy, numberTwo, false);
+        free_bignumber(exponentCopy);
+        exponentCopy = half_exp;
     }
 
     free_bignumber(baseCopy);
-    free_bignumber(exponent);
+    free_bignumber(exponentCopy);
     free_bignumber(numberTwo);
     return result;
 }
