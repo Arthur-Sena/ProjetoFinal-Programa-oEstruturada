@@ -81,7 +81,7 @@ int main() {
     else if (operador == '-')
         result = subtract_bignumbers(num1, num2);
     else if (operador == '*')
-        result = verify_multiplicationKaratsuba_bignumbers(num1, num2);
+        result = multiply_bignumbers(num1, num2);
     else if (operador == '^')
         result = power_bignumbers(num1, num2);
     else if (operador == '/')
@@ -89,7 +89,7 @@ int main() {
     else if (operador == '%')
         result = divide_bignumbers(num1, num2, true);
     else if (operador == 'x')
-        result = multiply_bignumbers(num1, num2);
+        result = verify_multiplicationKaratsuba_bignumbers(num1, num2);
     print_bignumber(result);
 
     free_bignumber(num1);
