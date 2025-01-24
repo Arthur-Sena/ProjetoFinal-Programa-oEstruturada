@@ -396,9 +396,9 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
     BigNumber* counter = create_bignumber("0");
     if (!counter) return NULL;
     
-    //BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
-    //if (!result) return NULL;
-    BigNumber* result = copy_bignumber(firstBignumber);
+    BigNumber* result = (BigNumber*)malloc(sizeof(BigNumber));
+    if (!result) return NULL;
+    result = copy_bignumber(firstBignumber);
 
     BigNumber* difTamanhoBigNumbers = subtract_bignumbers(tamanhoFirstBigNumber, tamanhoSecondBigNumber);
     BigNumber* two = create_bignumber("2");
@@ -479,7 +479,9 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
             counter = copy_bignumber(newCounter);
         }
                 
+        free_bignumber(newCounter);
         if (compare_bignumbers(newDividend, secondBignumber, true) < 0){
+            free_bignumber(result);
             result = returnRest ? newDividend : counter;
             if(newDividend != NULL){
                 free_bignumber(newDividend);
@@ -508,11 +510,16 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
 
 BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {    
     BigNumber* result = create_bignumber("1");
-    BigNumber* baseCopy = base;
     BigNumber* numberTwo = create_bignumber("2");
 
-    while (!(exponent->firstNode->digit == '0' && exponent->firstNode->nextNode == NULL)) {
-        if ((exponent->lastNode->digit - '0') % 2 != 0) {
+    BigNumber* baseCopy = (BigNumber*)malloc(sizeof(BigNumber));
+    baseCopy = copy_bignumber(base);
+    
+    BigNumber* exponentCopy = (BigNumber*)malloc(sizeof(BigNumber));
+    exponentCopy = copy_bignumber(exponent);
+    
+    while (!(exponentCopy->firstNode->digit == '0' && exponentCopy->firstNode->nextNode == NULL)) {
+        if ((exponentCopy->lastNode->digit - '0') % 2 != 0) {
             BigNumber* temp = multiply_bignumbers(result, baseCopy);
             free_bignumber(result);
             result = temp;
@@ -522,14 +529,14 @@ BigNumber* power_bignumbers(const BigNumber* base, const BigNumber* exponent) {
         free_bignumber(baseCopy);
         baseCopy = temp;        
 
-        BigNumber* half_exp = create_bignumber(long_to_string( bignumber_to_long(exponent) / 2));
-        //BigNumber* half_exp = divide_bignumbers(exponent, numberTwo, false);
-        free_bignumber(exponent);
-        exponent = half_exp;
+        //BigNumber* half_exp = create_bignumber(long_to_string( bignumber_to_long(exponent) / 2));
+        BigNumber* half_exp = divide_bignumbers(exponentCopy, numberTwo, false);
+        free_bignumber(exponentCopy);
+        exponentCopy = half_exp;
     }
 
     free_bignumber(baseCopy);
-    free_bignumber(exponent);
+    free_bignumber(exponentCopy);
     free_bignumber(numberTwo);
     return result;
 }
@@ -579,7 +586,7 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
     BigNumber* bgnZero = create_bignumber("0");
     BigNumber* bgnTwo = create_bignumber("2");
     BigNumber* bgnOne = create_bignumber("1");
-    BigNumber* n = NULL;
+    BigNumber* n = (BigNumber*)malloc(sizeof(BigNumber));
 
     if(compare_bignumbers(nNumber, bgnZero, false) == 1){
         n = nNumber;
@@ -592,6 +599,7 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
         free_bignumber(bgnThree);
         free_bignumber(bgnOne);
         free_bignumber(bgnTwo);
+        free_bignumber(n);
         return bgnZero;
     }
 
@@ -605,7 +613,7 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
         return multiply_bignumbers(firstBignumber, secondBignumber);
    }
 
-   BigNumber* m = divide_bignumbers(n, 2, false);
+   BigNumber* m = divide_bignumbers(n, bgnTwo, false);
 
     BigNumber* expoenteBaseTen = power_bignumbers(bgnTen, m);
 
@@ -618,26 +626,46 @@ BigNumber* karatsuba_multiply_bignumbers(const BigNumber* firstBignumber, const 
     BigNumber* prKaratsuba = karatsuba_multiply_bignumbers(p, r, m);
     BigNumber* qsKaratsuba = karatsuba_multiply_bignumbers(q, s, m);
     
-    BigNumber* yKaratsuba = karatsuba_multiply_bignumbers(add_bignumbers(p, q), add_bignumbers(r, s), add_bignumbers(m, bgnOne));
+    BigNumber* pSumQ = (BigNumber*)malloc(sizeof(BigNumber));
+    pSumQ = add_bignumbers(p, q);
+    
+    BigNumber* rSumS = (BigNumber*)malloc(sizeof(BigNumber));
+    rSumS = add_bignumbers(r, s);
+    
+    BigNumber* mSumBgnOne = (BigNumber*)malloc(sizeof(BigNumber));
+    mSumBgnOne = add_bignumbers(m, bgnOne);
+    BigNumber* yKaratsuba = karatsuba_multiply_bignumbers(pSumQ, rSumS, mSumBgnOne);
+    free_bignumber(pSumQ);
+    free_bignumber(rSumS);
+    free_bignumber(mSumBgnOne);
 
-    BigNumber* expoenteBaseTenDoisM = power_bignumbers(bgnTen, multiply_bignumbers(m, bgnTwo));
-    BigNumber* uv = add_bignumbers(
-        add_bignumbers(
-            karatsuba_multiply_bignumbers(prKaratsuba, expoenteBaseTenDoisM, bgnZero), 
-            karatsuba_multiply_bignumbers(
-                subtract_bignumbers(
-                    subtract_bignumbers(
-                        yKaratsuba,
-                        prKaratsuba
-                    ),
-                    qsKaratsuba
-                ),
-                expoenteBaseTen,
-                bgnZero
-            )
-        ), 
-        qsKaratsuba
-    );
+    BigNumber* mMultiplyBgnTwo = (BigNumber*)malloc(sizeof(BigNumber));
+    mMultiplyBgnTwo = multiply_bignumbers(m, bgnTwo);
+    BigNumber* expoenteBaseTenDoisM = power_bignumbers(bgnTen, mMultiplyBgnTwo);
+    free_bignumber(mMultiplyBgnTwo);
+
+    BigNumber* yKaratsuba_Subtract_prKaratsuba = (BigNumber*)malloc(sizeof(BigNumber));
+    yKaratsuba_Subtract_prKaratsuba = subtract_bignumbers(yKaratsuba, prKaratsuba);
+
+    BigNumber* secondValueUV = (BigNumber*)malloc(sizeof(BigNumber));
+    secondValueUV = subtract_bignumbers(yKaratsuba_Subtract_prKaratsuba, qsKaratsuba);
+
+    BigNumber* firstResultKaratsuba = (BigNumber*)malloc(sizeof(BigNumber));
+    firstResultKaratsuba = karatsuba_multiply_bignumbers(prKaratsuba, expoenteBaseTenDoisM, bgnZero);
+    
+    BigNumber* secondResultKaratsuba = (BigNumber*)malloc(sizeof(BigNumber));
+    secondResultKaratsuba = karatsuba_multiply_bignumbers(secondValueUV, expoenteBaseTen, bgnZero);
+
+    BigNumber* sumResults = (BigNumber*)malloc(sizeof(BigNumber));
+    sumResults = add_bignumbers(firstResultKaratsuba, secondResultKaratsuba);
+    
+    BigNumber* uv = add_bignumbers(sumResults, qsKaratsuba);
+
+    free_bignumber(firstResultKaratsuba);
+    free_bignumber(secondResultKaratsuba);
+    free_bignumber(sumResults);
+    free_bignumber(yKaratsuba_Subtract_prKaratsuba);
+    free_bignumber(secondValueUV);
     free_bignumber(prKaratsuba);
     free_bignumber(qsKaratsuba);
     free_bignumber(yKaratsuba);
