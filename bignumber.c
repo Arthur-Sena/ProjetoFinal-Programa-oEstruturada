@@ -408,7 +408,10 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
         free_bignumber(counter);
         free_bignumber(result);
         
-        counter = power_bignumbers(ten, subtract_bignumbers(difTamanhoBigNumbers, increment));
+        BigNumber* subtract_increment = subtract_bignumbers(difTamanhoBigNumbers, increment);
+        counter = power_bignumbers(ten, subtract_increment);
+        free_bignumber(subtract_increment);
+
         BigNumber* multiplo = (BigNumber*)malloc(sizeof(BigNumber));
         multiplo = multiply_bignumbers(secondBignumber, counter);
         result = subtract_bignumbers(firstBignumber, multiplo); 
@@ -432,7 +435,6 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
     free_bignumber(tamanhoSecondBigNumber);
     free_bignumber(two);
     free_bignumber(ten);
-    free_bignumber(difTamanhoBigNumbers);
 
     int comparison = compare_bignumbers(firstBignumber, secondBignumber, true);
     if (comparison < 0)
@@ -453,22 +455,21 @@ BigNumber* divide_bignumbers(BigNumber* firstBignumber, BigNumber* secondBignumb
         if (!newCounter) {
             free_bignumber(newDividend);
             return NULL;
-        } else {
-            free_bignumber(counter);
-            counter = copy_bignumber(newCounter);
-        }
+        } 
+        free_bignumber(counter);
+        counter = copy_bignumber(newCounter);
                 
+        free_bignumber(newCounter);
         if (compare_bignumbers(newDividend, secondBignumber, true) < 0){
+            free_bignumber(result);
             result = returnRest ? newDividend : counter;
             free_bignumber(result);
             free_bignumber(newDividend);
-            free_bignumber(newCounter);
             break;
         }
-        
+        free_bignumber(result);
         result = copy_bignumber(newDividend);
         free_bignumber(newDividend);
-        free_bignumber(newCounter);
     }
 
     free_bignumber(increment);
